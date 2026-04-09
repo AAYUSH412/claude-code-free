@@ -25,13 +25,13 @@
 
 Visit the live documentation site (after deployment):
 
-- **[🏠 Homepage](https://claudecodefree.dev)** - Overview & architecture
-- **[⚙️ Setup Guide](https://claudecodefree.dev/setup)** - Step-by-step installation
-- **[🤖 Model Comparison](https://claudecodefree.dev/models)** - Choose your AI model
-- **[🔧 Troubleshooting](https://claudecodefree.dev/troubleshooting)** - Fix common issues
-- **[📚 Daily Usage](https://claudecodefree.dev/daily-usage)** - Workflow commands
-- **[💡 Power Tips](https://claudecodefree.dev/tips)** - Pro productivity tricks
-- **[❓ FAQ](https://claudecodefree.dev/faq)** - Common questions
+- **[🏠 Homepage](https://claudecodefree.vercel.app)** - Overview & architecture
+- **[⚙️ Setup Guide](https://claudecodefree.vercel.app/setup)** - Step-by-step installation
+- **[🤖 Model Comparison](https://claudecodefree.vercel.app/models)** - Choose your AI model
+- **[🔧 Troubleshooting](https://claudecodefree.vercel.app/troubleshooting)** - Fix common issues
+- **[📚 Daily Usage](https://claudecodefree.vercel.app/daily-usage)** - Workflow commands
+- **[💡 Power Tips](https://claudecodefree.vercel.app/tips)** - Pro productivity tricks
+- **[❓ FAQ](https://claudecodefree.vercel.app/faq)** - Common questions
 
 ---
 

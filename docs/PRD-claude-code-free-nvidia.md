@@ -227,7 +227,7 @@ Ctrl+C          → exit
 - **Styling:** Tailwind CSS
 - **Code blocks:** Shiki or Prism.js with copy button
 - **Hosting:** Vercel or Netlify (free tier)
-- **Domain:** claudecodefree.dev or similar
+- **Domain:** claudecodefree.vercel.app or similar
 
 ### 6.3 Website Performance Requirements
 - Page load < 2 seconds

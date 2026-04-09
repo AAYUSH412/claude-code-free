@@ -130,7 +130,7 @@ export async function GET(request: Request) {
               color: '#6b7280',
             }}
           >
-            <span>claudecodefree.dev</span>
+            <span>claudecodefree.vercel.app</span>
             <span>•</span>
             <span>Free AI Coding Assistant</span>
           </div>

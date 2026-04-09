@@ -59,7 +59,7 @@ export const metadata: Metadata = {
   creator: "Aayush Vaghela",
   publisher: "Aayush Vaghela",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://claudecodefree.dev"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://claudecodefree.vercel.app"
   ),
   alternates: {
     canonical: "/",
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "https://claudecodefree.dev",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://claudecodefree.vercel.app",
     title: "Claude Code Free - Run AI Coding Assistant for Free",
     description:
       "Run Claude Code CLI for free using NVIDIA NIM's free-tier API and LiteLLM proxy. No credit card required. Complete setup guide.",
