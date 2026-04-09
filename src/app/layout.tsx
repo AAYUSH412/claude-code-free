@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     siteName: "Claude Code Free",
     images: [
       {
-        url: `/ogimage.png?v=${OG_IMAGE_VERSION}`,
+        url: `/ogimage.jpg`,
         width: 1200,
         height: 630,
         alt: "Claude Code Free",
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
     title: "Claude Code Free - Run AI Coding Assistant for Free",
     description:
       "Run Claude Code CLI for free using NVIDIA NIM's free-tier API and LiteLLM proxy.",
-    images: [`/ogimage.png?v=${OG_IMAGE_VERSION}`],
+    images: [`/ogimage.jpg`],
   },
   robots: {
     index: true,
