@@ -23,6 +23,24 @@ const itemVariants = {
   },
 };
 
+// Categorize troubleshooting issues
+const categorizedIssues = {
+  "Authentication & API": troubleshooting.filter(
+    (t) => t.error.includes("403") || t.error.includes("Authorization")
+  ),
+  "Docker & Container": troubleshooting.filter(
+    (t) => t.error.includes("Container") || t.error.includes("Docker")
+  ),
+  "Installation & PATH": troubleshooting.filter(
+    (t) => t.error.includes("command not found") || t.error.includes("PATH")
+  ),
+  "Windows Specific": troubleshooting.filter((t) => t.error.includes("Windows")),
+  "Port & Network": troubleshooting.filter(
+    (t) => t.error.includes("Port") || t.error.includes("4000")
+  ),
+  "Model Issues": troubleshooting.filter((t) => t.error.includes("DEGRADED")),
+};
+
 export default function TroubleshootingPage() {
   return (
     <PageShell
@@ -33,20 +51,32 @@ export default function TroubleshootingPage() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid gap-4 md:grid-cols-2"
+        className="grid gap-8"
       >
-        {troubleshooting.map((issue) => (
-          <motion.article
-            key={issue.error}
-            variants={itemVariants}
-            className="rounded-3xl border border-black/10 bg-white/85 p-6 shadow-sm"
-          >
-            <h2 className="text-xl font-semibold">{issue.error}</h2>
-            <p className="mt-3 text-sm uppercase tracking-[0.2em] text-black/45">Cause</p>
-            <p className="text-black/75">{issue.cause}</p>
-            <p className="mt-3 text-sm uppercase tracking-[0.2em] text-black/45">Fix</p>
-            <p className="text-black/90">{issue.fix}</p>
-          </motion.article>
+        {Object.entries(categorizedIssues).map(([category, issues]) => (
+          <motion.div key={category} variants={itemVariants}>
+            <h2 className="text-lg font-semibold text-black/70 mb-4 uppercase tracking-wider">
+              {category}
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              {issues.map((issue) => (
+                <article
+                  key={issue.error}
+                  className="rounded-3xl border border-black/10 bg-white/85 p-6 shadow-sm"
+                >
+                  <h3 className="text-xl font-semibold">{issue.error}</h3>
+                  <p className="mt-3 text-sm uppercase tracking-[0.2em] text-black/45">
+                    Cause
+                  </p>
+                  <p className="text-black/75">{issue.cause}</p>
+                  <p className="mt-3 text-sm uppercase tracking-[0.2em] text-black/45">
+                    Fix
+                  </p>
+                  <p className="text-black/90">{issue.fix}</p>
+                </article>
+              ))}
+            </div>
+          </motion.div>
         ))}
       </motion.section>
     </PageShell>

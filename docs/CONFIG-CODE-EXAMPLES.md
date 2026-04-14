@@ -14,14 +14,29 @@ Get your API key from [build.nvidia.com](https://build.nvidia.com):
 
 ## Step 2: Install Claude Code CLI
 
-### macOS
+### macOS / Linux / WSL (recommended)
 ```bash
-brew install --cask claude-code
+curl -fsSL https://claude.ai/install.sh | bash
 ```
 
-### Alternative (npm)
+### Windows PowerShell
+```powershell
+irm https://claude.ai/install.ps1 | iex
+```
+
+### Windows CMD
+```batch
+curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
+```
+
+### Windows Alternative
+```powershell
+winget install Anthropic.ClaudeCode
+```
+
+### Homebrew (optional)
 ```bash
-npm install -g @anthropic-ai/claude-code
+brew install --cask claude-code
 ```
 
 ### Verify Installation
@@ -31,7 +46,7 @@ claude --version
 
 ---
 
-## Step 3: Create LiteLLM config.yaml
+## Step 3: Create LiteLLM config.yaml (minimal first run)
 
 Create a file at `~/litellm-nim/config.yaml`:
 
@@ -42,19 +57,8 @@ model_list:
       model: nvidia_nim/google/gemma-4-31b-it
       api_key: os.environ/NVIDIA_NIM_API_KEY
 
-  - model_name: claude-opus-4-6
-    litellm_params:
-      model: nvidia_nim/nvidia/nemotron-3-super-120b-a12b
-      api_key: os.environ/NVIDIA_NIM_API_KEY
-
-  - model_name: claude-haiku-4-5
-    litellm_params:
-      model: nvidia_nim/mistralai/mistral-small-4-119b-2603
-      api_key: os.environ/NVIDIA_NIM_API_KEY
-
 litellm_settings:
   drop_params: true
-  fallbacks: [{"claude-sonnet-4-6": ["claude-opus-4-6"]}]
 
 general_settings:
   master_key: "sk-litellm-local"
@@ -64,25 +68,26 @@ general_settings:
 
 ## Step 4: Start LiteLLM Docker Container
 
+### macOS / Linux / WSL
 ```bash
-# Create directory
 mkdir -p ~/litellm-nim
 cd ~/litellm-nim
 
-# Copy config.yaml here (if not already in this directory)
+docker run -d --name litellm-nim --restart unless-stopped -p 4001:4000 -e NVIDIA_NIM_API_KEY="nvapi-YOUR_KEY_HERE" -v "$(pwd)/config.yaml:/app/config.yaml" docker.litellm.ai/berriai/litellm:main-stable --config /app/config.yaml
+```
 
-# Run Docker container
-docker run -d \
-  -p 4001:4000 \
-  -e NVIDIA_NIM_API_KEY="nvapi-YOUR_KEY_HERE" \
-  -v $(pwd)/config.yaml:/app/config.yaml \
-  --name litellm-nim \
-  --restart always \
-  docker.litellm.ai/berriai/litellm:main-stable \
-  --config /app/config.yaml
+### Windows PowerShell
+```powershell
+mkdir $HOME\litellm-nim
+cd $HOME\litellm-nim
 
-# Verify it's running
-docker logs litellm-nim
+docker run -d --name litellm-nim --restart unless-stopped -p 4001:4000 -e NVIDIA_NIM_API_KEY="nvapi-YOUR_KEY_HERE" -v "${PWD}\config.yaml:/app/config.yaml" docker.litellm.ai/berriai/litellm:main-stable --config /app/config.yaml
+```
+
+### If container already exists
+```bash
+docker rm -f litellm-nim
+# then run the docker run command again
 ```
 
 ### Useful Docker Commands
@@ -106,35 +111,29 @@ docker ps -a | grep litellm-nim
 ---
 
 ## Step 5: Add Shell Alias
-
-Add to your `~/.zshrc` (or `~/.bashrc` for bash):
+Run health checks before launch:
 
 ```bash
-# NVIDIA NIM API Key (replace with your actual key)
-export NVIDIA_NIM_API_KEY="nvapi-YOUR_KEY_HERE"
-
-# Claude Code alias with NVIDIA NIM proxy
-alias claude-nim='\
-ANTHROPIC_BASE_URL="http://localhost:4001" \
-ANTHROPIC_API_KEY="sk-litellm-local" \
-ANTHROPIC_MODEL="claude-sonnet-4-6" \
-ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-4-6" \
-ANTHROPIC_DEFAULT_SONNET_MODEL="claude-sonnet-4-6" \
-ANTHROPIC_DEFAULT_HAIKU_MODEL="claude-haiku-4-5" \
-claude'
+docker ps --filter "name=litellm-nim"
+docker logs --tail 50 litellm-nim
+curl http://localhost:4001/v1/models
 ```
 
-### Apply the changes
-```bash
-source ~/.zshrc
+```powershell
+iwr http://localhost:4001/v1/models
 ```
 
 ---
 
 ## Step 6: Launch!
-
 ```bash
-claude-nim
+# macOS / Linux / WSL
+ANTHROPIC_BASE_URL="http://localhost:4001" ANTHROPIC_API_KEY="sk-litellm-local" ANTHROPIC_MODEL="claude-sonnet-4-6" claude
+```
+
+```powershell
+# Windows PowerShell
+$env:ANTHROPIC_BASE_URL="http://localhost:4001"; $env:ANTHROPIC_API_KEY="sk-litellm-local"; $env:ANTHROPIC_MODEL="claude-sonnet-4-6"; claude
 ```
 
 ---

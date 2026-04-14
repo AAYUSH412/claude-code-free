@@ -38,23 +38,20 @@ Visit the live documentation site (after deployment):
 ## 🏃 Quick Start (30 seconds)
 
 ```bash
-# 1. Install Claude Code CLI
-brew install --cask claude-code
+# 1. Install Claude Code CLI (macOS/Linux/WSL)
+curl -fsSL https://claude.ai/install.sh | bash
+# Windows PowerShell: irm https://claude.ai/install.ps1 | iex
+# Windows CMD: curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
 
 # 2. Get free NVIDIA API key
 # Visit: https://build.nvidia.com and create account
 
-# 3. Run LiteLLM in Docker
-docker run -d \
-  -p 4001:4000 \
-  -e NVIDIA_NIM_API_KEY="nvapi-YOUR_KEY" \
-  --name litellm-nim \
-  --restart always \
-  docker.litellm.ai/berriai/litellm:main-stable \
-  --config /app/config.yaml
+# 3. Run LiteLLM in Docker (from your config.yaml directory)
+docker run -d --name litellm-nim --restart unless-stopped -p 4001:4000 -e NVIDIA_NIM_API_KEY="nvapi-YOUR_KEY" -v "$(pwd)/config.yaml:/app/config.yaml" docker.litellm.ai/berriai/litellm:main-stable --config /app/config.yaml
+# If container already exists: docker rm -f litellm-nim
 
-# 4. Launch Claude Code
-claude-nim
+# 4. Launch Claude through LiteLLM
+ANTHROPIC_BASE_URL="http://localhost:4001" ANTHROPIC_API_KEY="sk-litellm-local" ANTHROPIC_MODEL="claude-sonnet-4-6" claude
 ```
 
 📝 **Full guide**: See [Setup Documentation](/src/app/setup)

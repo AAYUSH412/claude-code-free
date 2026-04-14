@@ -2,7 +2,7 @@
 
 import { CodeSnippet } from "@/components/site/code-snippet";
 import { PageShell } from "@/components/site/page-shell";
-import { dailyCommands, insideClaudeCommands } from "@/content/site";
+import { dailyCommands, insideClaudeCommands, claudeCommands } from "@/content/site";
 import { motion } from "framer-motion";
 
 const containerVariants = {
@@ -25,7 +25,13 @@ const itemVariants = {
 };
 
 export default function DailyUsagePage() {
-  const commandBlock = dailyCommands.join("\n");
+  const commandBlock = [
+    "# Launch commands",
+    ...dailyCommands.launch.map((c) => `${c.cmd}`),
+    "",
+    "# Management commands",
+    ...dailyCommands.manage.map((c) => `${c.cmd}`),
+  ].join("\n");
 
   return (
     <PageShell
@@ -36,46 +42,46 @@ export default function DailyUsagePage() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid gap-4 md:grid-cols-2"
+        className="grid gap-6"
       >
         {/* Start of Day */}
-        <motion.article variants={itemVariants} className="rounded-3xl border border-black/10 bg-white/85 p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold">Start of day</h2>
-          <p className="mt-2 text-black/75">
+        <motion.article variants={itemVariants} className="rounded-3xl border border-black/10 bg-white/85 p-5 md:p-6 shadow-sm">
+          <h2 className="text-xl md:text-2xl font-semibold">Start of day</h2>
+          <p className="mt-2 text-sm md:text-base text-black/75">
             With <code>--restart always</code> enabled, Docker usually auto-recovers your proxy. In most cases you only need one command.
           </p>
           <CodeSnippet code="claude-nim" />
         </motion.article>
 
         {/* Operational Commands */}
-        <motion.article variants={itemVariants} className="rounded-3xl border border-black/10 bg-white/85 p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold">Operational commands</h2>
-          <p className="mt-2 text-black/75">
+        <motion.article variants={itemVariants} className="rounded-3xl border border-black/10 bg-white/85 p-5 md:p-6 shadow-sm">
+          <h2 className="text-xl md:text-2xl font-semibold">Operational commands</h2>
+          <p className="mt-2 text-sm md:text-base text-black/75">
             Keep these commands handy for restart, inspection, and session recovery.
           </p>
           <CodeSnippet code={commandBlock} />
         </motion.article>
       </motion.section>
 
-      {/* Inside Claude Code Commands */}
+      {/* Inside Claude Commands */}
       <motion.section
         variants={itemVariants}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="rounded-3xl border border-black/10 bg-white/85 p-6 shadow-sm"
+        className="rounded-3xl border border-black/10 bg-white/85 p-5 md:p-6 shadow-sm"
       >
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black/50">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/50">
           Inside Claude Code
         </p>
-        <h2 className="mt-2 text-2xl font-semibold">Commands available in the Claude Code session</h2>
-        <p className="mt-2 text-black/75">
+        <h2 className="mt-2 text-xl md:text-2xl font-semibold">Commands available in the Claude Code session</h2>
+        <p className="mt-2 text-sm md:text-base text-black/75">
           Once you&apos;re inside Claude Code (after running <code>claude-nim</code>), you can use these commands:
         </p>
 
-        <div className="mt-4 overflow-hidden rounded-2xl border border-black/10">
-          <table className="w-full text-left text-sm md:text-base">
+        <div className="mt-4 overflow-x-auto overflow-y-hidden rounded-2xl border border-black/10">
+          <table className="w-full text-left text-sm md:text-base min-w-[400px]">
             <thead className="bg-black text-white">
               <tr>
                 <th className="px-4 py-3">Command</th>
@@ -92,6 +98,145 @@ export default function DailyUsagePage() {
             </tbody>
           </table>
         </div>
+      </motion.section>
+
+      {/* Full Command Reference */}
+      <motion.section
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        className="grid gap-6"
+      >
+        <div className="text-center mb-4">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black/50">
+            Complete Reference
+          </p>
+          <h2 className="mt-2 text-2xl md:text-3xl font-semibold">All Claude Code commands</h2>
+          <p className="mt-2 text-sm md:text-base text-black/75 max-w-2xl mx-auto">
+            Type <code className="bg-black/5 px-2 py-0.5 rounded text-xs">/</code> inside Claude Code to see all available commands, or use the quick reference below.
+          </p>
+        </div>
+
+        {/* Session Management */}
+        <motion.article variants={itemVariants} className="rounded-3xl border border-black/10 bg-white/85 p-5 md:p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-flex size-8 items-center justify-center rounded-lg bg-blue-500 text-sm font-semibold text-white">
+              ⏯
+            </span>
+            <h3 className="text-lg md:text-xl font-semibold">Session Management</h3>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {claudeCommands.session.map((cmd) => (
+              <div key={cmd.command} className="flex items-start gap-3 p-3 rounded-xl hover:bg-black/5 transition-colors">
+                <code className="text-xs font-mono bg-black/5 px-2 py-1 rounded text-black font-semibold whitespace-nowrap">
+                  {cmd.command}
+                </code>
+                <span className="text-sm text-black/70">{cmd.description}</span>
+              </div>
+            ))}
+          </div>
+        </motion.article>
+
+        {/* Development Workflow */}
+        <motion.article variants={itemVariants} className="rounded-3xl border border-black/10 bg-white/85 p-5 md:p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-flex size-8 items-center justify-center rounded-lg bg-green-500 text-sm font-semibold text-white">
+              💻
+            </span>
+            <h3 className="text-lg md:text-xl font-semibold">Development Workflow</h3>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {claudeCommands.development.map((cmd) => (
+              <div key={cmd.command} className="flex items-start gap-3 p-3 rounded-xl hover:bg-black/5 transition-colors">
+                <code className="text-xs font-mono bg-black/5 px-2 py-1 rounded text-black font-semibold whitespace-nowrap">
+                  {cmd.command}
+                </code>
+                <span className="text-sm text-black/70">{cmd.description}</span>
+              </div>
+            ))}
+          </div>
+        </motion.article>
+
+        {/* Debugging & Diagnostics */}
+        <motion.article variants={itemVariants} className="rounded-3xl border border-black/10 bg-white/85 p-5 md:p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-flex size-8 items-center justify-center rounded-lg bg-amber-500 text-sm font-semibold text-white">
+              🔧
+            </span>
+            <h3 className="text-lg md:text-xl font-semibold">Debugging & Diagnostics</h3>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {claudeCommands.debugging.map((cmd) => (
+              <div key={cmd.command} className="flex items-start gap-3 p-3 rounded-xl hover:bg-black/5 transition-colors">
+                <code className="text-xs font-mono bg-black/5 px-2 py-1 rounded text-black font-semibold whitespace-nowrap">
+                  {cmd.command}
+                </code>
+                <span className="text-sm text-black/70">{cmd.description}</span>
+              </div>
+            ))}
+          </div>
+        </motion.article>
+
+        {/* Model & Performance */}
+        <motion.article variants={itemVariants} className="rounded-3xl border border-black/10 bg-white/85 p-5 md:p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-flex size-8 items-center justify-center rounded-lg bg-purple-500 text-sm font-semibold text-white">
+              ⚡
+            </span>
+            <h3 className="text-lg md:text-xl font-semibold">Model & Performance</h3>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {claudeCommands.model.map((cmd) => (
+              <div key={cmd.command} className="flex items-start gap-3 p-3 rounded-xl hover:bg-black/5 transition-colors">
+                <code className="text-xs font-mono bg-black/5 px-2 py-1 rounded text-black font-semibold whitespace-nowrap">
+                  {cmd.command}
+                </code>
+                <span className="text-sm text-black/70">{cmd.description}</span>
+              </div>
+            ))}
+          </div>
+        </motion.article>
+
+        {/* Settings & Configuration */}
+        <motion.article variants={itemVariants} className="rounded-3xl border border-black/10 bg-white/85 p-5 md:p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-flex size-8 items-center justify-center rounded-lg bg-pink-500 text-sm font-semibold text-white">
+              ⚙️
+            </span>
+            <h3 className="text-lg md:text-xl font-semibold">Settings & Configuration</h3>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {claudeCommands.settings.map((cmd) => (
+              <div key={cmd.command} className="flex items-start gap-3 p-3 rounded-xl hover:bg-black/5 transition-colors">
+                <code className="text-xs font-mono bg-black/5 px-2 py-1 rounded text-black font-semibold whitespace-nowrap">
+                  {cmd.command}
+                </code>
+                <span className="text-sm text-black/70">{cmd.description}</span>
+              </div>
+            ))}
+          </div>
+        </motion.article>
+
+        {/* Productivity & Utilities */}
+        <motion.article variants={itemVariants} className="rounded-3xl border border-black/10 bg-white/85 p-5 md:p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-flex size-8 items-center justify-center rounded-lg bg-indigo-500 text-sm font-semibold text-white">
+              🚀
+            </span>
+            <h3 className="text-lg md:text-xl font-semibold">Productivity & Utilities</h3>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {claudeCommands.productivity.map((cmd) => (
+              <div key={cmd.command} className="flex items-start gap-3 p-3 rounded-xl hover:bg-black/5 transition-colors">
+                <code className="text-xs font-mono bg-black/5 px-2 py-1 rounded text-black font-semibold whitespace-nowrap">
+                  {cmd.command}
+                </code>
+                <span className="text-sm text-black/70">{cmd.description}</span>
+              </div>
+            ))}
+          </div>
+        </motion.article>
       </motion.section>
 
       {/* Session Management Tips */}

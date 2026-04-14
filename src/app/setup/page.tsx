@@ -4,83 +4,24 @@ import { CodeSnippet } from "@/components/site/code-snippet";
 import { PageShell } from "@/components/site/page-shell";
 import { setupSteps } from "@/content/site";
 import { motion } from "framer-motion";
+import { SectionDivider } from "@/components/site/section-divider";
 
-const completeSetupScript = `#!/bin/bash
+const quickChecks = `# 1) Confirm container is running
+docker ps --filter "name=litellm-nim"
 
-set -e
+# 2) Confirm proxy can list models
+# macOS / Linux / WSL
+curl http://localhost:4001/v1/models
 
-echo "🚀 Setting up Claude Code via NVIDIA NIM..."
+# Windows PowerShell
+iwr http://localhost:4001/v1/models
 
-# Create directory
-mkdir -p ~/litellm-nim
-cd ~/litellm-nim
+# 3) Launch Claude through LiteLLM
+# macOS / Linux / WSL
+ANTHROPIC_BASE_URL="http://localhost:4001" ANTHROPIC_API_KEY="sk-litellm-local" ANTHROPIC_MODEL="claude-sonnet-4-6" claude
 
-# Create config.yaml
-cat > config.yaml << 'EOF'
-model_list:
-  - model_name: claude-sonnet-4-6
-    litellm_params:
-      model: nvidia_nim/google/gemma-4-31b-it
-      api_key: os.environ/NVIDIA_NIM_API_KEY
-
-  - model_name: claude-opus-4-6
-    litellm_params:
-      model: nvidia_nim/nvidia/nemotron-3-super-120b-a12b
-      api_key: os.environ/NVIDIA_NIM_API_KEY
-
-  - model_name: claude-haiku-4-5
-    litellm_params:
-      model: nvidia_nim/mistralai/mistral-small-4-119b-2603
-      api_key: os.environ/NVIDIA_NIM_API_KEY
-
-litellm_settings:
-  drop_params: true
-  fallbacks: [{"claude-sonnet-4-6": ["claude-opus-4-6"]}]
-
-general_settings:
-  master_key: "sk-litellm-local"
-EOF
-
-echo "✅ Config created"
-
-# Ask for API key
-read -p "Enter your NVIDIA NIM API Key (nvapi-...): " API_KEY
-
-# Start container
-docker run -d \\
-  -p 4001:4000 \\
-  -e NVIDIA_NIM_API_KEY="$API_KEY" \\
-  -v $(pwd)/config.yaml:/app/config.yaml \\
-  --name litellm-nim \\
-  --restart always \\
-  docker.litellm.ai/berriai/litellm:main-stable \\
-  --config /app/config.yaml
-
-echo "✅ Docker container started"
-
-# Add alias to ~/.zshrc
-cat >> ~/.zshrc << EOF
-
-# Claude Code via NVIDIA NIM
-export NVIDIA_NIM_API_KEY="$API_KEY"
-alias claude-nim='\\\\
-ANTHROPIC_BASE_URL="http://localhost:4001" \\\\
-ANTHROPIC_API_KEY="sk-litellm-local" \\\\
-ANTHROPIC_MODEL="claude-sonnet-4-6" \\\\
-ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-4-6" \\\\
-ANTHROPIC_DEFAULT_SONNET_MODEL="claude-sonnet-4-6" \\\\
-ANTHROPIC_DEFAULT_HAIKU_MODEL="claude-haiku-4-5" \\\\
-claude'
-EOF
-
-echo "✅ Shell alias added"
-
-# Reload shell
-source ~/.zshrc
-
-echo ""
-echo "🎉 Setup complete! Run 'claude-nim' to start using Claude Code for free."
-echo ""`;
+# Windows PowerShell
+$env:ANTHROPIC_BASE_URL="http://localhost:4001"; $env:ANTHROPIC_API_KEY="sk-litellm-local"; $env:ANTHROPIC_MODEL="claude-sonnet-4-6"; claude`;
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -105,51 +46,84 @@ export default function SetupPage() {
   return (
     <PageShell
       title="Step-by-step setup"
-      subtitle="A practical flow to run Claude Code using NVIDIA NIM through a local LiteLLM proxy in under 15 minutes."
+      subtitle="A beginner-friendly setup for macOS, Linux, WSL, and Windows PowerShell using NVIDIA NIM + LiteLLM."
     >
       <motion.section
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid gap-4"
+        className="grid gap-6"
       >
         {/* 6 Core Steps */}
         {setupSteps.map((step, index) => (
           <motion.article
             key={step.title}
             variants={itemVariants}
-            className="rounded-3xl border border-black/10 bg-white/80 p-5 shadow-sm md:p-7"
+            className="rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm md:p-8 overflow-hidden"
           >
             <div className="mb-4 flex items-center gap-3">
-              <span className="inline-flex size-8 items-center justify-center rounded-full bg-black text-sm font-semibold text-white">
+              <span className="inline-flex size-10 items-center justify-center rounded-full bg-black text-sm font-semibold text-white">
                 {index + 1}
               </span>
               <h2 className="text-2xl font-semibold">{step.title}</h2>
             </div>
             <p className="mb-4 text-black/75">{step.description}</p>
-            <CodeSnippet code={step.code} />
+            {step.code && <CodeSnippet code={step.code} />}
+            {step.configCode && <>
+              <span className="mt-4 mb-2 block text-sm font-semibold text-black/70">config.yaml</span>
+              <CodeSnippet code={step.configCode} />
+            </>}
+            {step.codeMacLinux && <>
+              <span className="mt-4 mb-2 block text-sm font-semibold text-black/70">macOS / Linux</span>
+              <CodeSnippet code={step.codeMacLinux} />
+            </>}
+            {step.codeMac && <>
+              <span className="mt-4 mb-2 block text-sm font-semibold text-black/70">macOS / Linux</span>
+              <CodeSnippet code={step.codeMac} />
+            </>}
+            {step.codeWindows && <>
+              <span className="mt-4 mb-2 block text-sm font-semibold text-black/70">Windows</span>
+              <CodeSnippet code={step.codeWindows} />
+            </>}
+            {step.codeBrew && <>
+              <span className="mt-4 mb-2 block text-sm font-semibold text-black/70">macOS (Homebrew)</span>
+              <CodeSnippet code={step.codeBrew} />
+            </>}
+            {step.expectedLog && <>
+              <span className="mt-4 mb-2 block text-sm font-semibold text-black/70">Expected Output</span>
+              <CodeSnippet code={step.expectedLog} />
+            </>}
+            {step.note && (
+              <div className="mt-4 rounded-xl bg-[#e9eeff] p-4">
+                <p className="text-sm text-black/80 flex items-start gap-2">
+                  <span aria-hidden="true">📌</span>
+                  <span>{step.note}</span>
+                </p>
+              </div>
+            )}
           </motion.article>
         ))}
 
-        {/* Complete Setup Script Section */}
+        <SectionDivider />
+
+        {/* Quick Validation Section */}
         <motion.article
           variants={itemVariants}
-          className="rounded-3xl border border-black/10 bg-white/80 p-5 shadow-sm md:p-7"
+          className="rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm md:p-8 overflow-hidden"
         >
           <div className="mb-4 flex items-center gap-3">
-            <span className="inline-flex size-8 items-center justify-center rounded-full bg-[#2d55ff] text-sm font-semibold text-white">
-              B
+            <span className="inline-flex size-10 items-center justify-center rounded-full bg-[#2d55ff] text-sm font-semibold text-white">
+              ✓
             </span>
-            <h2 className="text-2xl font-semibold">Bonus: Automated Setup Script</h2>
+            <h2 className="text-2xl font-semibold">Quick validation (recommended)</h2>
           </div>
           <p className="mb-4 text-black/75">
-            Prefer a one-liner? Save this script, make it executable, and run it to automate the entire setup.
+            Before adding aliases or advanced model routing, run these checks to confirm your base setup is working.
           </p>
-          <CodeSnippet code={completeSetupScript} />
+          <CodeSnippet code={quickChecks} />
           <div className="mt-4 rounded-xl bg-[#e9eeff] p-4">
             <p className="text-sm text-black/80">
-              <strong>Usage:</strong> Save as <code>setup-claude-nim.sh</code>, then run{' '}
-              <code>chmod +x setup-claude-nim.sh && ./setup-claude-nim.sh</code>
+              <strong>Tip:</strong> After this works, then add permanent aliases/functions to your shell profile.
             </p>
           </div>
         </motion.article>
@@ -157,25 +131,62 @@ export default function SetupPage() {
         {/* Quick Links to Troubleshooting */}
         <motion.article
           variants={itemVariants}
-          className="rounded-3xl border border-black/10 bg-white/80 p-5 shadow-sm md:p-7"
+          className="rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm md:p-8"
         >
           <h2 className="text-2xl font-semibold">Need help?</h2>
           <p className="mt-2 text-black/75">
             If you encounter issues during setup, check our troubleshooting guide for common fixes.
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-6 flex flex-wrap gap-3">
             <a
               href="/troubleshooting"
-              className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-black/85"
+              className="rounded-full bg-black px-6 py-2.5 text-sm font-medium text-white transition hover:bg-black/85 hover:-translate-y-0.5 hover:shadow-md"
             >
               View Troubleshooting Guide
             </a>
             <a
               href="/faq"
-              className="rounded-full border border-black/15 px-4 py-2 text-sm font-medium transition hover:border-black/30"
+              className="rounded-full border border-black/15 bg-white px-6 py-2.5 text-sm font-medium text-black transition hover:border-black/30 hover:-translate-y-0.5 hover:shadow-md"
             >
               Read FAQ
             </a>
+          </div>
+        </motion.article>
+
+        <SectionDivider />
+
+        {/* API Key Setup Warning */}
+        <motion.article
+          variants={itemVariants}
+          className="rounded-3xl border border-black/10 bg-white/80 p-6 shadow-sm md:p-8"
+        >
+          <div className="mb-4 flex items-center gap-3">
+            <span className="inline-flex size-10 items-center justify-center rounded-full bg-amber-500 text-sm font-semibold text-white">
+              !
+            </span>
+            <h2 className="text-2xl font-semibold">Important: API Key Setup</h2>
+          </div>
+          <p className="mb-4 text-black/75">
+            When you first run <code>claude-nim</code>, Claude Code will ask you:
+          </p>
+          <div className="mb-4 rounded-xl bg-black/5 border border-black/10 p-4 font-mono text-sm text-black">
+            Do you want to use this API key (sk-litellm-local)?
+          </div>
+          <p className="mb-4 text-black/75">
+            <strong>Important:</strong> You must select <strong>Yes (option 1)</strong>. This tells Claude Code to use the LiteLLM proxy key instead of looking for an Anthropic API key in your environment.
+          </p>
+          <div className="rounded-xl bg-[#fff8e6] border border-amber-200 p-4">
+            <p className="text-sm text-black/80 flex items-start gap-2">
+              <span aria-hidden="true">⚠️</span>
+              <span>
+                <strong>Warning:</strong> If you select &quot;No&quot;, Claude Code will not know where to find your API key and will fail to connect. You may need to restart the session with <code>claude-nim</code> if you accidentally select No.
+              </span>
+            </p>
+          </div>
+          <div className="mt-4 rounded-xl bg-[#e9eeff] p-4">
+            <p className="text-sm text-black/80">
+              <strong>How it works:</strong> The <code>sk-litellm-local</code> key is just a local proxy password that tells LiteLLM to route your requests to NVIDIA NIM. It&apos;s safe and required for this setup to work.
+            </p>
           </div>
         </motion.article>
       </motion.section>

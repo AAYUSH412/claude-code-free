@@ -50,10 +50,7 @@ export default function TipsPage() {
             variants={itemVariants}
             className="rounded-3xl border border-black/10 bg-white/85 p-6 shadow-sm"
           >
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black/50">
-              {category} Tips
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold">{category}</h2>
+            <h2 className="text-2xl font-semibold">{category}</h2>
             <ul className="mt-4 space-y-4">
               {categoryTips.map((tip, index) => (
                 <li key={index} className="flex items-start gap-3">
@@ -74,28 +71,28 @@ export default function TipsPage() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="mt-6 rounded-3xl border border-black/10 bg-gradient-to-br from-black to-[#1a1a1a] p-6 text-white shadow-sm"
+        className="mt-8 rounded-3xl border border-black/10 bg-gradient-to-br from-[#f8f9fa] to-white p-6 md:p-8 shadow-sm"
       >
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black/50">
           Quick Reference
         </p>
-        <h2 className="mt-2 text-xl font-semibold">Most used commands</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <div className="rounded-2xl bg-white/10 p-4">
-            <p className="font-mono text-sm text-white/90">claude-nim</p>
-            <p className="mt-1 text-xs text-white/60">Start Claude Code</p>
+        <h2 className="mt-2 text-xl font-semibold text-black">Most used commands</h2>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl bg-white p-4 border border-black/5 shadow-sm">
+            <p className="font-mono text-sm text-black/90">claude-nim</p>
+            <p className="mt-1 text-xs text-black/60">Start Claude Code</p>
           </div>
-          <div className="rounded-2xl bg-white/10 p-4">
-            <p className="font-mono text-sm text-white/90">/compact</p>
-            <p className="mt-1 text-xs text-white/60">Free up context</p>
+          <div className="rounded-2xl bg-white p-4 border border-black/5 shadow-sm">
+            <p className="font-mono text-sm text-black/90">/compact</p>
+            <p className="mt-1 text-xs text-black/60">Free up context</p>
           </div>
-          <div className="rounded-2xl bg-white/10 p-4">
-            <p className="font-mono text-sm text-white/90">docker logs litellm-nim</p>
-            <p className="mt-1 text-xs text-white/60">Check proxy health</p>
+          <div className="rounded-2xl bg-white p-4 border border-black/5 shadow-sm">
+            <p className="font-mono text-sm text-black/90">docker logs litellm-nim</p>
+            <p className="mt-1 text-xs text-black/60">Check proxy health</p>
           </div>
-          <div className="rounded-2xl bg-white/10 p-4">
-            <p className="font-mono text-sm text-white/90">/model</p>
-            <p className="mt-1 text-xs text-white/60">Switch model slot</p>
+          <div className="rounded-2xl bg-white p-4 border border-black/5 shadow-sm">
+            <p className="font-mono text-sm text-black/90">/model</p>
+            <p className="mt-1 text-xs text-black/60">Switch model slot</p>
           </div>
         </div>
       </motion.section>

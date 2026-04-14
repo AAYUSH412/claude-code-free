@@ -28,7 +28,7 @@ export const viewport: Viewport = {
 
 // Bump this value when updating OG art so social platforms refetch cards.
 // X/Twitter can cache old previews for a long time.
-const OG_IMAGE_VERSION = "1";
+// const OG_IMAGE_VERSION = "1"; // Unused - kept for future OG image versioning
 
 export const metadata: Metadata = {
   title: {
