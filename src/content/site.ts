@@ -68,6 +68,7 @@ export const installCommands = {
 };
 
 // ─── SETUP STEPS ─────────────────────────────────────────────────────────────
+// ─── SETUP STEPS (corrected config + alias) ──────────────────────────────────
 export const setupSteps = [
   {
     title: "Get NVIDIA API Key",
@@ -79,86 +80,76 @@ export const setupSteps = [
   {
     title: "Install Claude Code CLI",
     description:
-      "Install the Claude Code CLI using the method for your platform. The native installer is recommended — it auto-updates in the background.",
-    codeMac: `# macOS / Linux (recommended)\ncurl -fsSL https://claude.ai/install.sh | bash\n\n# Verify install\nclaude --version`,
+      "Install the Claude Code CLI. The native installer is recommended — it auto-updates. You need v2.1.129 or later for the /model gateway picker to work.",
+    codeMac: `# macOS / Linux (recommended)\ncurl -fsSL https://claude.ai/install.sh | bash\n\n# Verify install (must be 2.1.129+)\nclaude --version`,
     codeWindows: `# Windows — open PowerShell and run:\nirm https://claude.ai/install.ps1 | iex\n\n# Requires Git for Windows first:\n# https://git-scm.com/downloads/win`,
     codeBrew: `# macOS via Homebrew\nbrew install --cask claude-code\nclaude --version`,
-    note: "After installing, open a new terminal window before running claude --version.",
+    note: "After installing, open a NEW terminal window before running claude --version.",
   },
   {
     title: "Create config.yaml",
     description:
-      "This file tells LiteLLM which NVIDIA NIM models to use for each Claude model slot. Create a folder and save this file inside it.",
+      "This file maps Claude Code's model slots to NVIDIA NIM models. Indentation matters: '- model_name' at 2 spaces, 'litellm_params' at 4, the fields under it at 6. A single wrong space breaks the whole file.",
     code: `mkdir -p ~/litellm-nim\ncd ~/litellm-nim`,
     configCode: `model_list:
-  # ─── SONNET - Fast daily coding ───
+  # ═══ CORE SLOTS — Claude Code uses these automatically ═══
+
+  # SONNET slot — daily driver. Fast, clean, reliable.
   - model_name: claude-sonnet-4-6
     litellm_params:
-      model: nvidia_nim/qwen/qwen3.5-122b-a10b
+      model: nvidia_nim/mistralai/mistral-medium-3.5-128b
       api_key: os.environ/NVIDIA_NIM_API_KEY
 
-  # ─── OPUS - Complex multi-file work ───
+  # OPUS slot — heavy reasoning for hard, multi-file work.
   - model_name: claude-opus-4-6
     litellm_params:
-      model: nvidia_nim/nvidia/nemotron-3-super-120b-a12b
+      model: nvidia_nim/deepseek-ai/deepseek-v4-pro
       api_key: os.environ/NVIDIA_NIM_API_KEY
 
-  # ─── HAIKU - Quick answers ───
+  # HAIKU slot — background tasks, file reads. Must be fast.
   - model_name: claude-haiku-4-5
     litellm_params:
-      model: nvidia_nim/mistralai/mistral-small-4-119b-2603
+      model: nvidia_nim/deepseek-ai/deepseek-v4-flash
       api_key: os.environ/NVIDIA_NIM_API_KEY
 
-  # ─── CUSTOM 1: Kimi - Code from UI/screenshots ───
-  - model_name: kimi-vision
+  # ═══ SPECIALTY MODELS — switch with /model claude-<name> ═══
+
+  - model_name: claude-deepseek
     litellm_params:
-      model: nvidia_nim/moonshotai/kimi-k2.5
+      model: nvidia_nim/deepseek-ai/deepseek-v4-pro
       api_key: os.environ/NVIDIA_NIM_API_KEY
 
-  # ─── CUSTOM 2: GLM-5 - Long agentic sessions ───
-  - model_name: glm5-agentic
+  - model_name: claude-deepseek-flash
     litellm_params:
-      model: nvidia_nim/z-ai/glm5
+      model: nvidia_nim/deepseek-ai/deepseek-v4-flash
       api_key: os.environ/NVIDIA_NIM_API_KEY
 
-  # ─── CUSTOM 3: Llama 3.3 - General coding ───
-- model_name: llama-3.3-70b
-  litellm_params:
-    model: nvidia_nim/meta/llama-3.3-70b-instruct
-    api_key: os.environ/NVIDIA_NIM_API_KEY
-
-# ─── CUSTOM 4: DeepSeek V3.2 - Advanced reasoning ───
-- model_name: deepseek-v3.2
-  litellm_params:
-    model: nvidia_nim/deepseek-ai/deepseek-v3_2
-    api_key: os.environ/NVIDIA_NIM_API_KEY
-
-# ─── CUSTOM 5: Mistral - Stable fallback ───
-  - model_name: mistral-stable
+  - model_name: claude-gemma
     litellm_params:
-      model: nvidia_nim/mistralai/mistral-small-4-119b-2603
+      model: nvidia_nim/google/gemma-4-31b-it
       api_key: os.environ/NVIDIA_NIM_API_KEY
 
-  - model_name: minimax-m2.7
+  - model_name: claude-step
     litellm_params:
-      model: nvidia_nim/minimaxai/minimax-m2.7
+      model: nvidia_nim/stepfun-ai/step-3.7-flash
       api_key: os.environ/NVIDIA_NIM_API_KEY
 
 litellm_settings:
   drop_params: true
+  request_timeout: 300
 
 general_settings:
   master_key: "sk-litellm-local"`,
-    note: 'Save this as config.yaml inside the ~/litellm-nim folder.',
+    note: "Save as config.yaml in ~/litellm-nim. Validate it before starting: python3 -c \"import yaml; yaml.safe_load(open('config.yaml')); print('YAML OK')\"",
   },
   {
     title: "Start LiteLLM via Docker",
     description:
-      "Run LiteLLM as a local proxy. This translates Claude Code's API calls into NVIDIA NIM API calls. Make sure Docker Desktop is running first.",
+      "Run LiteLLM as a local proxy that translates Claude Code's calls into NVIDIA NIM calls. Make sure Docker Desktop is running first. Note: port 4001 on your machine maps to 4000 inside the container.",
     codeMacLinux: `cd ~/litellm-nim
 
 docker run -d \\
-  -p 4000:4000 \\
+  -p 4001:4000 \\
   -e NVIDIA_NIM_API_KEY="nvapi-YOUR_KEY_HERE" \\
   -v $(pwd)/config.yaml:/app/config.yaml \\
   --name litellm-nim \\
@@ -166,12 +157,12 @@ docker run -d \\
   docker.litellm.ai/berriai/litellm:main-stable \\
   --config /app/config.yaml
 
-# Verify it started correctly
+# Verify — you want to see "Application startup complete"
 docker logs litellm-nim`,
     codeWindows: `cd $env:USERPROFILE\\litellm-nim
 
 docker run -d \`
-  -p 4000:4000 \`
+  -p 4001:4000 \`
   -e NVIDIA_NIM_API_KEY="nvapi-YOUR_KEY_HERE" \`
   -v \${PWD}/config.yaml:/app/config.yaml \`
   --name litellm-nim \`
@@ -179,22 +170,22 @@ docker run -d \`
   docker.litellm.ai/berriai/litellm:main-stable \`
   --config /app/config.yaml
 
-# Verify it started
 docker logs litellm-nim`,
     expectedLog: `INFO: Application startup complete.
 INFO: Uvicorn running on http://0.0.0.0:4000`,
-    note: "Replace nvapi-YOUR_KEY_HERE with your actual NVIDIA API key. The --restart always flag means the container auto-starts whenever Docker Desktop opens.",
+    note: "Replace nvapi-YOUR_KEY_HERE with your real key. If logs show a Python traceback instead of 'startup complete', your config.yaml has a YAML error — validate it.",
   },
   {
     title: "Add Shell Alias",
     description:
-      "Add the claude-nim alias to your shell config file. This sets the environment variables that route Claude Code through your local LiteLLM proxy instead of Anthropic's servers.",
+      "Add the claude-nim alias. This routes Claude Code through your local proxy and enables the gateway model picker. Use ANTHROPIC_AUTH_TOKEN (not API_KEY) to avoid an auth-conflict warning.",
     codeMac: `# Add to ~/.zshrc (macOS) or ~/.bashrc (Linux)
 export NVIDIA_NIM_API_KEY="nvapi-YOUR_KEY_HERE"
 
 alias claude-nim='\\
-  ANTHROPIC_BASE_URL="http://localhost:4000" \\
-  ANTHROPIC_API_KEY="sk-litellm-local" \\
+  ANTHROPIC_BASE_URL="http://localhost:4001" \\
+  ANTHROPIC_AUTH_TOKEN="sk-litellm-local" \\
+  CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1 \\
   ANTHROPIC_MODEL="claude-sonnet-4-6" \\
   ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-4-6" \\
   ANTHROPIC_DEFAULT_SONNET_MODEL="claude-sonnet-4-6" \\
@@ -204,96 +195,64 @@ alias claude-nim='\\
 $env:NVIDIA_NIM_API_KEY = "nvapi-YOUR_KEY_HERE"
 
 function claude-nim {
-  $env:ANTHROPIC_BASE_URL = "http://localhost:4000"
-  $env:ANTHROPIC_API_KEY = "sk-litellm-local"
+  $env:ANTHROPIC_BASE_URL = "http://localhost:4001"
+  $env:ANTHROPIC_AUTH_TOKEN = "sk-litellm-local"
+  $env:CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY = "1"
   $env:ANTHROPIC_MODEL = "claude-sonnet-4-6"
   $env:ANTHROPIC_DEFAULT_OPUS_MODEL = "claude-opus-4-6"
   $env:ANTHROPIC_DEFAULT_SONNET_MODEL = "claude-sonnet-4-6"
   $env:ANTHROPIC_DEFAULT_HAIKU_MODEL = "claude-haiku-4-5"
   claude @args
 }`,
-    note: "Replace nvapi-YOUR_KEY_HERE with your actual key. On Windows, open PowerShell profile with: notepad $PROFILE",
+    note: "Replace nvapi-YOUR_KEY_HERE with your real key. ANTHROPIC_BASE_URL uses port 4001 to match the Docker command.",
   },
   {
     title: "Launch Claude Code",
     description:
-      "Reload your shell config and launch Claude Code. When asked about API key, select Yes to use the LiteLLM key.",
+      "Reload your shell config and launch. Inside Claude Code, type /model (bare) to see your NVIDIA models in the picker, labeled 'From gateway'.",
     codeMac: `# macOS / Linux
 source ~/.zshrc   # or source ~/.bashrc on Linux
 claude-nim`,
     codeWindows: `# Windows PowerShell
 . $PROFILE
 claude-nim`,
-    note: 'When Claude Code asks "Do you want to use this API key (sk-litellm-local)?" — select Yes (option 1).',
+    note: 'If asked "Do you want to use this API key?" — select Yes. Then type /model to switch between gateway models.',
   },
 ];
 
-// ─── MODELS TABLE ─────────────────────────────────────────────────────────────
+// ─── MODELS TABLE (verified live on build.nvidia.com, with tested speeds) ─────
 export const models = [
   {
-    name: "Nemotron Super 120B",
-    nimId: "nvidia/nemotron-3-super-120b-a12b",
-    provider: "NVIDIA",
-    logoName: "NVIDIA",
-    size: "120B MoE",
-    speed: "⚡ Fast",
-    coding: "⭐⭐⭐⭐⭐",
-    bestFor: "Agentic coding, 1M context window",
-    category: "Top Tier",
+    name: "Mistral Medium 3.5",
+    nimId: "mistralai/mistral-medium-3.5-128b",
+    provider: "Mistral",
+    logoName: "Mistral",
+    size: "128B",
+    speed: "⚡ Very Fast (~0.6s)",
+    coding: "⭐⭐⭐⭐",
+    bestFor: "Daily driver — fast, clean English",
+    category: "Recommended Default",
   },
   {
-    name: "Llama 3.3 70B",
-    nimId: "meta/llama-3.3-70b-instruct",
-    provider: "Meta",
-    logoName: "Meta",
-    size: "70B Dense",
-    speed: "⚡ Fast",
-    coding: "⭐⭐⭐⭐⭐",
-    bestFor: "General coding & reasoning",
-    category: "Top Tier",
-  },
-  {
-    name: "GLM-5",
-    nimId: "z-ai/glm5",
-    provider: "Zhipu",
-    logoName: "AI",
-    size: "744B MoE",
-    speed: "🔵 Medium",
-    coding: "⭐⭐⭐⭐⭐",
-    bestFor: "Complex agentic tasks",
-    category: "Top Tier",
-  },
-  {
-    name: "Kimi K2.5",
-    nimId: "moonshotai/kimi-k2.5",
-    provider: "Moonshot AI",
-    logoName: "AI",
-    size: "Large MoE",
-    speed: "⚡ Fast",
-    coding: "⭐⭐⭐⭐⭐",
-    bestFor: "Vision & code from UI/screenshots",
-    category: "Top Tier",
-  },
-  {
-    name: "DeepSeek V3.2",
-    nimId: "deepseek-ai/deepseek-v3_2",
+    name: "DeepSeek V4 Pro",
+    nimId: "deepseek-ai/deepseek-v4-pro",
     provider: "DeepSeek",
     logoName: "AI",
-    size: "Large Dense",
-    speed: "⚡ Fast",
+    size: "1M context MoE",
+    speed: "⚡ Fast (~6s)",
     coding: "⭐⭐⭐⭐⭐",
-    bestFor: "Advanced coding & reasoning",
+    bestFor: "Deep reasoning, hard bugs, multi-file work",
     category: "Top Tier",
   },
   {
-    name: "MiniMax M2.7",
-    nimId: "minimaxai/minimax-m2.7",
-    provider: "MiniMax",
+    name: "DeepSeek V4 Flash",
+    nimId: "deepseek-ai/deepseek-v4-flash",
+    provider: "DeepSeek",
     logoName: "AI",
-    size: "Large MoE",
+    size: "284B MoE, 1M context",
     speed: "⚡ Fast",
     coding: "⭐⭐⭐⭐",
-    bestFor: "Reliable general-purpose coding",
+    bestFor: "Fast coding & background tasks",
     category: "Fast & Efficient",
   },
   {
@@ -304,74 +263,93 @@ export const models = [
     size: "31B Dense",
     speed: "⚡ Very Fast",
     coding: "⭐⭐⭐⭐",
-    bestFor: "Reasoning + fast coding",
+    bestFor: "Vision + fast coding, screenshots/UI",
     category: "Fast & Efficient",
   },
   {
-    name: "Qwen 3.5 122B",
-    nimId: "qwen/qwen3.5-122b-a10b",
-    provider: "Qwen",
-    logoName: "CodeIgniter",
-    size: "122B MoE",
-    speed: "⚡ Fast",
+    name: "Step 3.7 Flash",
+    nimId: "stepfun-ai/step-3.7-flash",
+    provider: "StepFun",
+    logoName: "AI",
+    size: "Sparse MoE multimodal",
+    speed: "🔵 Medium (~2.6s, reasoning-heavy)",
     coding: "⭐⭐⭐⭐",
-    bestFor: "Daily coding — fast response",
+    bestFor: "Reasoning specialist — switch to explicitly",
     category: "Reasoning & Logic",
   },
   {
-    name: "Mistral Small 4",
-    nimId: "mistralai/mistral-small-4-119b-2603",
-    provider: "Mistral",
-    logoName: "Missing",
-    size: "119B MoE",
-    speed: "⚡ Fast",
-    coding: "⭐⭐⭐⭐",
-    bestFor: "Reliable fallback, 256K context",
-    category: "Fast & Efficient",
-  },
-  {
-    name: "Flux.2 Text-to-Image",
-    nimId: "black-forest-labs/flux_2-klein-4b",
-    provider: "Black Forest",
-    logoName: "Image",
-    size: "4B Dense",
-    speed: "⚡ Fast",
-    coding: "N/A",
-    bestFor: "Image generation",
+    name: "Kimi K2.6",
+    nimId: "moonshotai/kimi-k2.6",
+    provider: "Moonshot AI",
+    logoName: "AI",
+    size: "1T MoE multimodal",
+    speed: "🐢 Slow (can exceed 2min on free tier)",
+    coding: "⭐⭐⭐⭐⭐",
+    bestFor: "Vision specialist — heavy, use sparingly",
     category: "Vision & Creative",
   },
 ];
 
-// ─── MODEL SLOT MAPPING ───────────────────────────────────────────────────────
+// ─── MODEL SLOT MAPPING (corrected to match config + tested models) ───────────
 export const modelSlotMapping = [
   {
     slot: "Sonnet (default)",
-    command: "/model → 1 or 5",
-    recommendedModel: "meta/llama-3.1-405b-instruct",
-    useCase: "Daily coding — highly capable",
-    provider: "Meta",
-    logoName: "Meta",
+    command: "/model claude-sonnet-4-6",
+    recommendedModel: "mistralai/mistral-medium-3.5-128b",
+    useCase: "Daily coding — fast and reliable",
+    provider: "Mistral",
+    logoName: "Mistral",
   },
   {
     slot: "Opus (powerful)",
-    command: "/model → 3",
-    recommendedModel: "nvidia/nemotron-3-super-120b-a12b",
-    useCase: "Complex multi-file work",
-    provider: "NVIDIA",
-    logoName: "NVIDIA",
+    command: "/model claude-opus-4-6",
+    recommendedModel: "deepseek-ai/deepseek-v4-pro",
+    useCase: "Complex reasoning & multi-file work",
+    provider: "DeepSeek",
+    logoName: "AI",
   },
   {
     slot: "Haiku (quick)",
-    command: "/model → 4",
-    recommendedModel: "google/gemma-4-31b-it",
-    useCase: "Quick questions, very fast",
-    provider: "Google",
-    logoName: "Google",
+    command: "/model claude-haiku-4-5",
+    recommendedModel: "deepseek-ai/deepseek-v4-flash",
+    useCase: "Background tasks — fast",
+    provider: "DeepSeek",
+    logoName: "AI",
   },
 ];
 
 // ─── TROUBLESHOOTING ──────────────────────────────────────────────────────────
 export const troubleshooting = [
+  {
+    error: "Python traceback / yaml.parser.ParserError on startup",
+    cause: "config.yaml has wrong indentation — usually a model block not aligned to 2/4/6 spaces",
+    fix: "Every '- model_name' = 2 spaces, 'litellm_params:' = 4 spaces, fields under it = 6 spaces. Validate with: python3 -c \"import yaml; yaml.safe_load(open('config.yaml')); print('OK')\"",
+  },
+  {
+    error: "410 Gone — model has reached end of life",
+    cause: "NVIDIA retired that model (e.g. z-ai/glm5 was retired May 2026)",
+    fix: "Go to build.nvidia.com/models, find the current replacement slug, update config.yaml, then: docker restart litellm-nim",
+  },
+  {
+    error: "Invalid model name passed in model=<name>",
+    cause: "Custom model name without the 'claude-' prefix, or gateway discovery is off",
+    fix: "Prefix all model names with 'claude-' in config.yaml, and ensure CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1 is in your alias.",
+  },
+  {
+    error: "Request hangs forever / curl times out with 0 bytes",
+    cause: "Either a Redis connection blocking startup, or a slow reasoning model (Kimi/GLM can exceed 2 min on free tier)",
+    fix: "Don't add Redis unless needed. Keep slow models out of the core slots. Set request_timeout: 300 in litellm_settings so slow calls error instead of hanging.",
+  },
+  {
+    error: "Auth conflict: both token and API key are set",
+    cause: "Alias sets both ANTHROPIC_AUTH_TOKEN and ANTHROPIC_API_KEY",
+    fix: "Use only ANTHROPIC_AUTH_TOKEN in your alias. Remove the ANTHROPIC_API_KEY line.",
+  },
+  {
+    error: "/model claude-<name> hangs or shows nothing",
+    cause: "Claude Code older than v2.1.129, or gateway discovery not enabled",
+    fix: "Run: brew upgrade claude-code (need 2.1.129+). Add CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1 to your alias. Type bare /model to see the picker.",
+  },
   {
     error: "403 Authorization failed",
     cause: "API key expired or was leaked",
@@ -412,6 +390,7 @@ export const troubleshooting = [
     cause: "PATH not updated in PowerShell profile",
     fix: "Run: . $PROFILE to reload your PowerShell profile. If the function is missing, re-add it to $PROFILE.",
   },
+  
 ];
 
 // ─── DAILY COMMANDS ───────────────────────────────────────────────────────────
@@ -751,6 +730,11 @@ export const tips = [
 
 // ─── FAQs ─────────────────────────────────────────────────────────────────────
 export const faqs = [
+  {
+    question: "How much free usage do I get from NVIDIA?",
+    answer:
+      "The free tier is roughly 40 requests/minute, but popular models (like DeepSeek Pro) can hit rate limits sooner, and there are per-model and daily caps. It's enough for normal development sessions. If you hit limits often, you can create multiple free accounts and rotate keys, or switch to a less-busy model.",
+  },
   {
     question: "Do I need a paid Claude account?",
     answer:
